@@ -20,6 +20,34 @@ Both servers perform an identical workload: computing 100 iterations of SHA256 h
 - **Load Testing Tool**: k6 with k6-operator
 - **Metrics**: Prometheus + Grafana
 
+## Benchmark Results
+
+Results from running the benchmark on Hetzner Cloud (k3s cluster).
+
+### Latency (successful requests only)
+
+| Metric | Go Server | Rust Server |
+|--------|-----------|-------------|
+| P50    | 0.274 ms  | 0.338 ms    |
+| P90    | 1.027 ms  | 1.679 ms    |
+| P95    | 1.615 ms  | 1.950 ms    |
+| P99    | 3.979 ms  | 2.858 ms    |
+| Avg    | 0.488 ms  | 0.648 ms    |
+
+### Request Statistics
+
+| Server | Successful   | Failed | Error Rate |
+|--------|--------------|--------|------------|
+| Go     | 9,562,037    | 653    | 0.007%     |
+| Rust   | 13,238,995   | 323    | 0.002%     |
+
+### Key Observations
+
+1. **Go has lower latency** at P50, P90, P95 (approximately 20-40% faster response times)
+2. **Rust has better tail latency** at P99 (2.86ms vs 3.98ms) - more consistent under extreme load
+3. **Rust achieved higher throughput** - 13.2M requests vs 9.5M requests (38% more)
+4. **Both servers are highly reliable** - error rates below 0.01%
+
 ## Prerequisites
 
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
