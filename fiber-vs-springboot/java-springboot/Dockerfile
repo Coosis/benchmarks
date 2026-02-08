@@ -3,8 +3,6 @@ FROM eclipse-temurin:25-jdk AS builder
 WORKDIR /app
 
 COPY pom.xml .
-COPY .mvn .mvn
-COPY mvnw .
 COPY src ./src
 
 RUN apt-get update && apt-get install -y maven && \
