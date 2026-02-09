@@ -5,9 +5,12 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type HashResponse struct {
@@ -18,7 +21,34 @@ type HashResponse struct {
 
 var hashSeed = []byte("benchmark-test-data")
 
+var (
+	goroutineCount = prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "go_goroutines",
+		Help: "Number of goroutines that currently exist.",
+	})
+)
+
+func init() {
+	prometheus.MustRegister(goroutineCount)
+}
+
 func main() {
+	// Start Prometheus metrics server on port 2112
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		// Update goroutine count every second
+		go func() {
+			for {
+				goroutineCount.Set(float64(runtime.NumGoroutine()))
+				time.Sleep(1 * time.Second)
+			}
+		}()
+		fmt.Println("Prometheus metrics server starting on :2112")
+		if err := http.ListenAndServe(":2112", nil); err != nil {
+			panic(err)
+		}
+	}()
+
 	app := fiber.New()
 
 	app.Get("/hash", hashHandler)
